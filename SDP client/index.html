@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SDP Client</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- BODY & BACKGROUND ---------- */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(-45deg, #6a11cb, #2575fc, #ff6a00, #ff0080);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ---------- PARTICLE CANVAS ---------- */
+#bgCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* ---------- CONTAINER ---------- */
+.container {
+    position: relative;
+    z-index: 1;
+    background: rgba(31, 31, 46, 0.85);
+    backdrop-filter: blur(15px);
+    padding: 40px 50px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.7);
+    width: 450px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ---------- HEADINGS & LABELS ---------- */
+h2 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: 700;
+    color: #f0f0f0;
+}
+
+label {
+    display: block;
+    margin: 10px 0 5px;
+    font-weight: 500;
+    color: #fff;
+}
+
+input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+/* ---------- STATUS ---------- */
+.status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.status-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: red;
+    position: relative;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.status-circle::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: rgba(40, 167, 69, 0.5);
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.status-circle.pulse::before {
+    animation: ripple 1.8s infinite;
+}
+
+@keyframes ripple {
+    0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0.7;
+        box-shadow: 0 0 10px rgba(40,167,69,0.7);
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0.3;
+        box-shadow: 0 0 40px rgba(40,167,69,0.5);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(3);
+        opacity: 0;
+        box-shadow: 0 0 60px rgba(40,167,69,0);
+    }
+}
+
+.status-text {
+    font-weight: 600;
+    color: #fff;
+}
+
+/* ---------- BUTTONS ---------- */
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+button {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    text-shadow: 0 0 5px rgba(0,0,0,0.3);
+}
+
+button:active { transform: scale(0.97); }
+
+#connectBtn { 
+    background: linear-gradient(45deg, #28a745, #00ffea);
+    color: #fff;
+    box-shadow: 0 0 20px #00ffea;
+}
+
+#disconnectBtn { 
+    background: linear-gradient(45deg, #dc3545, #ff4c4c);
+    color: #fff;
+    box-shadow: 0 0 20px #ff4c4c;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(0,255,255,0.8);
+}
+
+/* ---------- LOG PANEL ---------- */
+#toggleLogBtn {
+    background: rgba(68,68,68,0.8);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+}
+
+#logContainer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+#log {
+    margin-top: 10px;
+    background: rgba(42, 42, 64, 0.9);
+    color: #0ff;
+    padding: 15px;
+    border-radius: 10px;
+    height: 200px;
+    overflow-y: auto;
+    font-family: monospace;
+    font-size: 14px;
+    border: 1px solid #00ffea;
+    text-shadow: 0 0 5px #00ffea;
+}
+
+.log-info { color: #00ffea; }
+.log-success { color: #28a745; }
+.log-error { color: #ff4c4c; }
+
+.arrow { display: inline-block; transition: transform 0.3s ease; }
+.arrow.open { transform: rotate(90deg); }
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<div class="container">
+    <h2>SDP Client</h2>
+
+    <div class="status">
+        <div class="status-circle" id="statusCircle"></div>
+        <div class="status-text" id="statusText">Disconnected</div>
+    </div>
+
+    <label>SDP ID:
+        <input type="text" id="sdpId" value="123"/>
+    </label>
+
+    <label>Password:
+        <input type="password" id="password" value="test"/>
+    </label>
+
+    <div class="buttons">
+        <button id="connectBtn">Connect</button>
+        <button id="disconnectBtn" disabled>Disconnect</button>
+    </div>
+
+    <div id="toggleLogBtn">
+        <span>Show Log</span>
+        <span class="arrow" id="logArrow">▶</span>
+    </div>
+
+    <div id="logContainer">
+        <pre id="log"></pre>
+    </div>
+</div>
+<script src="renderer.js"></script>
+</body>
+</html>

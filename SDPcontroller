@@ -1,0 +1,12 @@
+{
+"sdp_id":"demo",
+"key": "./keys/server.key",
+"cert": "./keys/server.crt",
+"port":3000
+
+"db_host": "127.0.0.1"
+"db_port": 3306,
+"db_user": "sdp_controller",
+"db_password": "sdp",
+"db_name": "sdp"
+}
